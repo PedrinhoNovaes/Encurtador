@@ -9,29 +9,44 @@ using System.Threading.Tasks;
 
 namespace Encurtador.Controllers
 {
+
+    // This will be needed later in the PostURL() method
+    public class URLResponse
+    {
+        public string url { get; set; }
+        public string status { get; set; }
+        public string token { get; set; }
+    }
+
+
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
 
-        public HomeController(ILogger<HomeController> logger)
-        {
-            _logger = logger;
-        }
 
+
+        // Our index Route
+        [HttpGet, Route("/")]
         public IActionResult Index()
         {
             return View();
         }
 
-        public IActionResult Privacy()
+        // Our URL shorten route
+        [HttpPost, Route("/")]
+        public IActionResult PostURL([FromBody] string url)
         {
-            return View();
+            throw new NotImplementedException();
         }
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+        // Our Redirect route
+        [HttpGet, Route("/{token}")]
+        public IActionResult NixRedirect([FromRoute] string token)
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            throw new NotImplementedException();
+
         }
+
+       
+        
     }
 }
