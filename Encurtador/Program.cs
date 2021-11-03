@@ -1,26 +1,46 @@
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using LiteDB;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
-namespace Encurtador
-{
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            CreateHostBuilder(args).Build().Run();
-        }
+namespace Encurtador.App{
+	public class NixURL{
+		public Guid ID { get; set; }
+		public string URL { get; set; }
+		public string ShortenedURL { get; set; }
+		public string Token { get; set; }
+		public int Clicked { get; set; } = 0;
+		public DateTime Created { get; set; } = DateTime.Now;
+	}
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
-    }
+	public class Shortener{
+		public string Token { get; set; } 
+		private NixURL biturl;
+		
+		private Shortener GenerateToken() {
+			string urlsafe = string.Empty;
+			Enumerable.Range(48, 75)
+              .Where(i => i < 58 || i > 64 && i < 91 || i > 96)
+              .OrderBy(o => new Random().Next())
+              .ToList()
+              .ForEach(i => urlsafe += Convert.ToChar(i)); // Store each char into urlsafe
+			Token = urlsafe.Substring(new Random().Next(0, urlsafe.Length), new Random().Next(2, 6));
+			return this;
+		}
+		public Shortener(string url) {
+			var db = new LiteDatabase("Data/Urls.db");
+			var urls = db.GetCollection<NixURL>();
+            
+			while (urls.Exists(u => u.Token == GenerateToken().Token)) ;
+          
+			biturl = new NixURL() { 
+                Token = Token, 
+                URL = url, 
+                ShortenedURL = new NixConf().Config.BASE_URL + Token 
+            };
+			if (urls.Exists(u => u.URL == url))
+				throw new Exception("URL already exists");
+            
+			urls.Insert(biturl);
+		}
+	}
 }
